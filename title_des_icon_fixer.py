@@ -29,10 +29,9 @@ class EPGGeneratorApp:
         self.main_frame = ttk.Frame(self.main_canvas, padding="10")
         self.main_canvas.create_window((0, 0), window=self.main_frame, anchor="nw")
         # Magenta heading
-        heading_label = tk.Label(self.main_frame, text="©Surmagic IT Solutions", font=("Helvetica", 18, "bold"), fg="#FF00FF")
+        heading_label = tk.Label(self.main_frame, text="@Surmagic IT Solutions", font=("Helvetica", 18, "bold"), fg="#FF00FF")
         heading_label.pack(pady=(0, 10))
 
-        
         # Bind mousewheel for scrolling
         self.main_frame.bind("<MouseWheel>", self._on_mousewheel)
         
@@ -178,31 +177,32 @@ Example:
             if len(parts) < 3:
                 continue  # Must have at least start, end, title
             
-            # Default fields
-            start_time = parts[0]
-            end_time = parts[1]
-            title = parts[2]
-            description = ""
-            icon_url = ""
-
-            # Look for icon_url (last http-like string)
+            # Initialize all fields with empty strings
+            program = {
+                "start_time": parts[0],
+                "end_time": parts[1],
+                "title": "",
+                "description": "",
+                "icon_url": ""
+            }
+            
+            # Find and remove icon URL if present
             for i in reversed(range(len(parts))):
                 if parts[i].startswith("http"):
-                    icon_url = parts[i]
+                    program["icon_url"] = parts[i]
                     parts.pop(i)
                     break
             
-            # Anything left between title and icon is likely description
-            if len(parts) > 3:
-                description = parts[3]  # This assumes description is in the 4th column
-
-            program = {
-                "start_time": start_time,
-                "end_time": end_time,
-                "title": title,
-                "description": description,
-                "icon_url": icon_url
-            }
+            # The remaining parts after start_time, end_time, and icon_url removal
+            remaining_parts = parts[2:]
+            
+            # First remaining part is title (even if empty)
+            if len(remaining_parts) > 0:
+                program["title"] = remaining_parts[0] if remaining_parts[0] else ""
+            
+            # Second remaining part (if exists) is description
+            if len(remaining_parts) > 1:
+                program["description"] = remaining_parts[1]
 
             self.weekly_schedule[day].append(program)
         
@@ -229,7 +229,7 @@ Example:
     def reset_form(self):
         self.start_date.set(datetime.now().strftime("%m/%d/%Y"))
         self.weeks.set(4)
-        self.channel_name.set("@Surmagic IT Solutions")
+        self.channel_name.set("BTN Rwanda")
         self.output_excel.set("")
         self.output_xml.set("")
         self.weekly_schedule = {day: [] for day in self.weekly_schedule}
@@ -298,7 +298,7 @@ Example:
                         "end_date": end_date.strftime("%m/%d/%Y"),
                         "end_time": program["end_time"],
                         "channel": channel_name,
-                        "title": program["title"] or "",
+                        "title": program.get("title", "") or "",
                         "subtitle": "",
                         "description": program.get("description", ""),
                         "category": "",
@@ -358,15 +358,25 @@ Example:
             start = self.combine_datetime(row["start_date"], row["start_time"])
             stop = self.combine_datetime(row["end_date"], row["end_time"])
             
+            # Skip entries with empty titles
+            if pd.isna(row["title"]) or not str(row["title"]).strip():
+                continue
+            
             programme = ET.SubElement(tv, "programme", {
                 "start": start,
                 "stop": stop,
                 "channel": str(row["channel"])
             })
             
-            ET.SubElement(programme, "title").text = str(row["title"])
-            if row["icon_url"]:
-                ET.SubElement(programme, "icon").text = str(row["icon_url"])
+            ET.SubElement(programme, "title").text = str(row["title"]).strip()
+            
+            # Only add description if it exists
+            if pd.notna(row["description"]) and str(row["description"]).strip():
+                ET.SubElement(programme, "desc").text = str(row["description"]).strip()
+            
+            # Only add icon if URL exists and is not empty
+            if pd.notna(row["icon_url"]) and str(row["icon_url"]).strip():
+                ET.SubElement(programme, "icon", src=str(row["icon_url"]).strip())
         
         if self.output_xml.get():
             xml_file = self.output_xml.get()
