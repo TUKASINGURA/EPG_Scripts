@@ -372,11 +372,13 @@ Example:
             
             # Only add description if it exists
             if pd.notna(row["description"]) and str(row["description"]).strip():
-                ET.SubElement(programme, "desc").text = str(row["description"]).strip()
-            
+                ET.SubElement(programme, "description").text = str(row["description"]).strip()
+        
             # Only add icon if URL exists and is not empty
             if pd.notna(row["icon_url"]) and str(row["icon_url"]).strip():
-                ET.SubElement(programme, "icon", src=str(row["icon_url"]).strip())
+                # ET.SubElement(programme, "icon", src=str(row["icon_url"]).strip()) #because it is producing <icon src="https://example.com/icon1.png"/> which is not the desired format
+                ET.SubElement(programme, "icon").text = str(row["icon_url"]).strip()
+
         
         if self.output_xml.get():
             xml_file = self.output_xml.get()
