@@ -365,19 +365,18 @@ Example:
             programme = ET.SubElement(tv, "programme", {
                 "start": start,
                 "stop": stop,
-                "channel": str(row["channel"])
             })
-            
+            ET.SubElement(programme, "channel").text = str(row["channel"]).strip()
             ET.SubElement(programme, "title").text = str(row["title"]).strip()
             
             # Only add description if it exists
             if pd.notna(row["description"]) and str(row["description"]).strip():
-                ET.SubElement(programme, "description").text = str(row["description"]).strip()
+                ET.SubElement(programme, "desc").text = str(row["description"]).strip()
         
             # Only add icon if URL exists and is not empty
             if pd.notna(row["icon_url"]) and str(row["icon_url"]).strip():
-                # ET.SubElement(programme, "icon", src=str(row["icon_url"]).strip()) #because it is producing <icon src="https://example.com/icon1.png"/> which is not the desired format
-                ET.SubElement(programme, "icon").text = str(row["icon_url"]).strip()
+                 ET.SubElement(programme, "icon", src=str(row["icon_url"]).strip()) 
+                # ET.SubElement(programme, "icon").text = str(row["icon_url"]).strip() # provided URL as src attribute
 
         
         if self.output_xml.get():
