@@ -358,16 +358,19 @@ Example:
             start = self.combine_datetime(row["start_date"], row["start_time"])
             stop = self.combine_datetime(row["end_date"], row["end_time"])
             
-            # Skip entries with empty titles
-            if pd.isna(row["title"]) or not str(row["title"]).strip():
-                continue
+            # # Skip entries with empty titles
+            # if pd.isna(row["title"]) or not str(row["title"]).strip():
+            #     continue
             
             programme = ET.SubElement(tv, "programme", {
                 "start": start,
                 "stop": stop,
             })
             ET.SubElement(programme, "channel").text = str(row["channel"]).strip()
-            ET.SubElement(programme, "title").text = str(row["title"]).strip()
+            # ET.SubElement(programme, "title").text = str(row["title"]).strip()
+                # Only include title if it's present and not empty
+            if pd.notna(row["title"]) and str(row["title"]).strip():
+              ET.SubElement(programme, "title").text = str(row["title"]).strip()
             
             # Only add description if it exists
             if pd.notna(row["description"]) and str(row["description"]).strip():
@@ -376,7 +379,7 @@ Example:
             # Only add icon if URL exists and is not empty
             if pd.notna(row["icon_url"]) and str(row["icon_url"]).strip():
                  ET.SubElement(programme, "icon", src=str(row["icon_url"]).strip()) 
-                # ET.SubElement(programme, "icon").text = str(row["icon_url"]).strip() # provided URL as src attribute
+                # ET.SubElement(programme, "icon").text = str(row["icon_url"]).strip() # provided URL without an attribute
 
         
         if self.output_xml.get():
