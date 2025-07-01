@@ -359,6 +359,8 @@ Example:
             stop = self.combine_datetime(row["end_date"], row["end_time"])
             
             # # Skip entries with empty titles
+            # if you need all rows from the Excel file tot  included in the XML,
+            #  even if the title or description is missing, and you do not want a placeholder
             # if pd.isna(row["title"]) or not str(row["title"]).strip():
             #     continue
             
