@@ -235,8 +235,26 @@ Example:
         self.weekly_schedule = {day: [] for day in self.weekly_schedule}
         self.update_bulk_entry()
     
+    # Loading Popup indicator of something is happening in the background
+
+    def show_loading_popup(self, message="Generating files..."):
+        self.loading_popup = tk.Toplevel(self.root)
+        self.loading_popup.title("Please Wait")
+        self.loading_popup.geometry("300x100")
+        self.loading_popup.resizable(False, False)
+        self.loading_popup.grab_set()
+        ttk.Label(self.loading_popup, text=message, font=("Helvetica", 12)).pack(expand=True, pady=20)
+        self.root.update_idletasks()
+
+
+    def close_loading_popup(self):
+        if hasattr(self, 'loading_popup') and self.loading_popup.winfo_exists():
+            self.loading_popup.destroy()
+   
+ 
     def generate_epg(self):
         try:
+            self.show_loading_popup("Generating EPG files...")
             # Validate inputs
             missing_days = [day for day, programs in self.weekly_schedule.items() if len(programs) == 0]
             if missing_days:
@@ -257,6 +275,7 @@ Example:
                 icon='info'
             )
         except Exception as e:
+            self.close_loading_popup()
             messagebox.showerror(
                 "Generation Error",
                 f"Failed to generate EPG files:\n\n{str(e)}",
